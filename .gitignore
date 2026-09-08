@@ -1,0 +1,9 @@
+node_modules/
+.pnpm-store/
+dist/
+.mcp.json
+.env
+.env.*
+config/settings.json
+*.log
+.DS_Store

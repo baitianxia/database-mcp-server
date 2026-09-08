@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "database-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/absolute/path/database-mcp-server/src/index.js"
+      ],
+      "env": {
+        "DATABASE_CONFIG_PATH": "/absolute/path/database-mcp-server/config/settings.json"
+      }
+    }
+  }
+}

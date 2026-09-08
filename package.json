@@ -1,0 +1,25 @@
+{
+  "name": "database-mcp-server",
+  "version": "0.2.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "A configurable database assistant MCP server for Claude Code, currently backed by MySQL.",
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "check": "node --check src/config.js && node --check src/sql.js && node --check src/db.js && node --check src/index.js",
+    "test": "node --test",
+    "baseline": "node scripts/create-source-baseline.mjs",
+    "build:windows": "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/build-windows.ps1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "mysql2": "3.24.3",
+    "zod": "4.1.12"
+  }
+}

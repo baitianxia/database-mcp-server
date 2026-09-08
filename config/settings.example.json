@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "adapter": "mysql",
+  "environments": {
+    "dev": {
+      "connection": {
+        "host": "127.0.0.1",
+        "port": 3306,
+        "database": "your_dev_database",
+        "user": "your_dev_user",
+        "password": "change_me",
+        "charset": "utf8mb4",
+        "timezone": "Z",
+        "ssl": {
+          "mode": "disabled"
+        }
+      },
+      "permissions": {
+        "allowWrite": false,
+        "allowDdl": false,
+        "allowDestructive": false
+      },
+      "runtime": {
+        "connectionLimit": 4,
+        "connectTimeoutMs": 10000,
+        "queryTimeoutMs": 30000
+      }
+    },
+    "staging": {
+      "connection": {
+        "host": "staging-db.example.com",
+        "port": 3306,
+        "database": "your_staging_database",
+        "user": "your_staging_user",
+        "password": "change_me"
+      }
+    },
+    "prod": {
+      "connection": {
+        "host": "prod-db.example.com",
+        "port": 3306,
+        "database": "your_prod_database",
+        "user": "your_prod_user",
+        "password": "change_me"
+      },
+      "permissions": {
+        "allowWrite": false,
+        "allowDdl": false,
+        "allowDestructive": false
+      }
+    }
+  }
+}

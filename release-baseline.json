@@ -1,0 +1,146 @@
+{
+  "baselineVersion": 1,
+  "product": "database-mcp-server",
+  "packageVersion": "0.2.0",
+  "revision": "23d9acb0232df8d5db5e9fb2234d720b796c647c2eb8cd7788388d1c3ecbf3ea",
+  "generatedAt": "2026-09-08T13:25:07.503Z",
+  "source": "local content digest (Git metadata unavailable in this workspace)",
+  "files": [
+    {
+      "path": ".DS_Store",
+      "sha256": "ee65a9c3991bee856f44ba84a667db48871f90c09d703dbacb7945b001300fff"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "ebc60dcfb1e3c70126222f6ea61f71e788e38b5af0eab1c9853e88d91706df64"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "6fa19d9ea069790654efd1298740fc13eadc2704d9f1db61672b62ac23fc65d1"
+    },
+    {
+      "path": ".node-version",
+      "sha256": "c989649ac5c541692f22f2e41f5fbc34927c02bf1644e5dcca46bb4c88281f87"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "df280e282829079bb58999c6337b2765b1205bdf456adc5d5dd5282df1af3f56"
+    },
+    {
+      "path": "claude-code.mcp.example.json",
+      "sha256": "b92086002234c8d08f4d1cf369c408cb014f1856e38d0b0e4b903ac68c7d4dd5"
+    },
+    {
+      "path": "config/settings.example.json",
+      "sha256": "4b6c5ab9e8fbbc3ea55551e6fa16089a70b07a65e4fd1e62dd8b747f74836e6d"
+    },
+    {
+      "path": "CONFIGURE.cmd",
+      "sha256": "36d08e5ec416d49f3fdc31851f97766a31a9efaf4ae2d4114896c79a265febe4"
+    },
+    {
+      "path": "CONFIGURE.ps1",
+      "sha256": "e10aff8cd6f10c76df686b9c8615502f32a3e0d07cf6282dc35e4bab7a7661a0"
+    },
+    {
+      "path": "docs/architecture.md",
+      "sha256": "3b5a5613136ba9882108ba51a79df48e069afea1986e3b298d1aabc607a3028b"
+    },
+    {
+      "path": "docs/windows-release.md",
+      "sha256": "39f1b076f0853950f38db615f93fa27ba9d4de5251a9d8c3de9a40e3d561830c"
+    },
+    {
+      "path": "docs/windows-remediation-2026-09.md",
+      "sha256": "4d447693cd44b8ea28b49606d8570538c57b19513a413d83829b9bd901d048de"
+    },
+    {
+      "path": "INSTALL.cmd",
+      "sha256": "5eb423d6f74e117d6395e35395bdf0db185b516708fefcd62be98efadd5dc357"
+    },
+    {
+      "path": "INSTALL.ps1",
+      "sha256": "030edb93fd19f6aeaa81d8b41cdcc1ab6858cac8e9f04ef797c8cec8799d0093"
+    },
+    {
+      "path": "OPEN-CONFIG.cmd",
+      "sha256": "527aa564bb3d570a032d7d1e728a09980d8df4349d1fc15b565499027d6f20eb"
+    },
+    {
+      "path": "OPEN-CONFIG.ps1",
+      "sha256": "5a9330654e6346dbd486c7b97ca7ee1684d65eb9c73af16e9251686654cb1ca5"
+    },
+    {
+      "path": "package.json",
+      "sha256": "73bfb280ad086d3e253037dcccd342011eddadf04c4c99817b4c6b3c6361f559"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "6d3fe6eb3ac92798a024c23b8fccf444bf7c8dd648732367e9ff4d9270b4dd92"
+    },
+    {
+      "path": "README.md",
+      "sha256": "34af2ebd7a8a68150f311ccc592d706999b475bad12ca2f278431f1f73de1d02"
+    },
+    {
+      "path": "scripts/build-windows.cmd",
+      "sha256": "a004d5ee152131bc1dccbdde98c0692b924fa65d298433014cfbc7f42f246c2f"
+    },
+    {
+      "path": "scripts/build-windows.ps1",
+      "sha256": "a595c04e293678e927cb24872823dec5925d378bb913dec60ad40d7b3adbc6a0"
+    },
+    {
+      "path": "scripts/create-source-baseline.mjs",
+      "sha256": "54c77311659589dd1ecc3d2559d77062bebab69d27f41b378981043d37765943"
+    },
+    {
+      "path": "scripts/verify-windows-release.ps1",
+      "sha256": "bed36b03ef86024b3c73bf9e6c2be8e0fe035dab5b0f82b0eef079610d8ea0d0"
+    },
+    {
+      "path": "src/config.js",
+      "sha256": "0a03cbfa4ac267c2833055461814ec60f8cf76032b044df6566abb37273ee4ff"
+    },
+    {
+      "path": "src/db.js",
+      "sha256": "f927b98e092f6f5c434a0127864d644883f18e33a2b7daa2667c651a18482052"
+    },
+    {
+      "path": "src/index.js",
+      "sha256": "b55f4c217b64dcfde5f9e9cac2d0632821cc5fea9d980f73a6cf400972fc809c"
+    },
+    {
+      "path": "src/sql.js",
+      "sha256": "a7dc5f7ab841a219aeac8176ed1f7c23ea0d3db5568f30c090bee4e7b58b149f"
+    },
+    {
+      "path": "START-HERE.html",
+      "sha256": "68f3e3723028c4a558a8319b5672d65e32551f7900d37bd0c64bd2fe354c27fb"
+    },
+    {
+      "path": "test/config.test.js",
+      "sha256": "c644e2e40225e3f0b1344fe939864e59c34584cd3b2a7ee2a67ac70d9a7fa92c"
+    },
+    {
+      "path": "test/db.test.js",
+      "sha256": "f6b3da9b36486ef0d4997fd7d6cf69e8db96f4662f5c6c999e83f366f000d4fd"
+    },
+    {
+      "path": "test/protocol.test.js",
+      "sha256": "d69ba06d615635b51622eee02cda3c68b7111905b969d5a2f2f690a02fe4b43c"
+    },
+    {
+      "path": "test/sql.test.js",
+      "sha256": "e9dd2327fe768b07602a4a998d59e43f64ab287628eee446da5b499e5b118be0"
+    },
+    {
+      "path": "UNINSTALL.cmd",
+      "sha256": "58116bb39b500cc68e0746910a50128d38cc2845035d21253b7aff42af0f7772"
+    },
+    {
+      "path": "UNINSTALL.ps1",
+      "sha256": "343db217830a2dd27ee08b348a66cbe55852480adf04f8d5a86d06c37f9addb5"
+    }
+  ]
+}
