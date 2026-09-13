@@ -1,14 +1,14 @@
 {
   "baselineVersion": 1,
   "product": "database-mcp-server",
-  "packageVersion": "0.2.2",
-  "revision": "aec8112c09687173538cae50464b9757c3213fa7273830c3e34773bc4fb94923",
-  "generatedAt": "2026-09-13T11:41:23.748Z",
+  "packageVersion": "0.2.3",
+  "revision": "5587e305ccf9fcdf8ad53fe2ea6db92b1fff55e5cf33dd5993d30471e63ce88b",
+  "generatedAt": "2026-09-13T12:33:59.129Z",
   "source": "local content digest (Git metadata unavailable in this workspace)",
   "files": [
     {
       "path": ".DS_Store",
-      "sha256": "ee65a9c3991bee856f44ba84a667db48871f90c09d703dbacb7945b001300fff"
+      "sha256": "a73a0fffc7ea1b02c034500571d945219e092600251542e4497a7d7ea6a1cddf"
     },
     {
       "path": ".gitattributes",
@@ -48,19 +48,19 @@
     },
     {
       "path": "docs/windows-release.md",
-      "sha256": "df166c263e21fdb70151cd5de88dc551fcc568d46fc399b8880f412560ca7b80"
+      "sha256": "8deb05898275df71b9293254ef9cd0d31099206d826389e52fa98285f8320161"
     },
     {
       "path": "docs/windows-remediation-2026-09.md",
-      "sha256": "0e9fe008f04c69c15c4a95d0f823c2d14970d9f7bcfc9e8576aaa9a33c9e2f22"
+      "sha256": "a17bba120cda1e66792bb37355844101d3303309298c8e6325a1abfca1986ce4"
     },
     {
       "path": "INSTALL.cmd",
-      "sha256": "bf713f744650bbe21e1d85e6c3128a2113c5a9e1b35234dfab511fc8e1d1667a"
+      "sha256": "17879ebadd4648061202365501ad90ee4fae608423aadea52a6014ce908ab433"
     },
     {
       "path": "INSTALL.ps1",
-      "sha256": "48e2731c91464b3fc908524f843a328b6b076c905c53687dfa152e2841870a58"
+      "sha256": "d87ad8ff2cbe44c1b3ae45c6c0c60bf43a4da70dd562aade3328b59cb29e7c49"
     },
     {
       "path": "OPEN-CONFIG.cmd",
@@ -72,7 +72,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "f4beadc8a0b7304c6cacfea5fc6193f9285a2465f4a827bf0dd42497e3c7e874"
+      "sha256": "1e35b82aa5a25d30afee71a93a339e1d99b5e8b64c007abc51802c63deec8eb6"
     },
     {
       "path": "pnpm-lock.yaml",
@@ -80,7 +80,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "4490b817acca0523ce0b978238062cb1b64d8b4d6e29a314bae7903991b77d77"
+      "sha256": "767a89ae5df9000cc9ef62c928302179605b65f1ec921724f93fcbd28c24ac75"
     },
     {
       "path": "scripts/build-windows.cmd",
@@ -88,7 +88,7 @@
     },
     {
       "path": "scripts/build-windows.ps1",
-      "sha256": "0fa321da7352599f567bc929b96242b600ba4d41057bf9550650ec2178f1217a"
+      "sha256": "1013cfb4915e9846efab666f66410fc90f17fa99135a795aef9c41f9fe6dbc0a"
     },
     {
       "path": "scripts/create-source-baseline.mjs",
@@ -96,7 +96,7 @@
     },
     {
       "path": "scripts/verify-windows-release.ps1",
-      "sha256": "95f168fcbab940ad13c8e3938f0e80128d73787a679fda506523ff223697c193"
+      "sha256": "ea0325f1d543d951423310356e734eba860306ad3d8805c6f8f58171e3120d3f"
     },
     {
       "path": "src/config.js",
@@ -108,7 +108,7 @@
     },
     {
       "path": "src/index.js",
-      "sha256": "48c4b18607f6098cd5c14ebca745f7056813ade33f38b51d4338af3130ce3772"
+      "sha256": "47e8569b93a9eea36806db99670641be89e2abe85da80b547eb0b6b32c1d6056"
     },
     {
       "path": "src/sql.js",

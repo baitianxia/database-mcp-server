@@ -27,6 +27,18 @@ function Assert-PowerShellSyntax([string]$Path) {
   }
 }
 
+function Read-Utf8Json([string]$Path) {
+  $utf8 = New-Object System.Text.UTF8Encoding($false, $true)
+  $text = [IO.File]::ReadAllText($Path, $utf8)
+  return ($text | ConvertFrom-Json)
+}
+
+function Assert-AsciiCmd([string]$Path) {
+  foreach ($byte in [IO.File]::ReadAllBytes($Path)) {
+    if ($byte -gt 0x7f) { throw "批处理入口必须是 ASCII 文本：$Path" }
+  }
+}
+
 function Assert-PeX64([string]$Path) {
   $bytes = [IO.File]::ReadAllBytes($Path)
   if ($bytes.Length -lt 64 -or $bytes[0] -ne 0x4d -or $bytes[1] -ne 0x5a) { throw 'Node 运行时不是有效的 PE 文件。' }
@@ -62,6 +74,9 @@ try {
   foreach ($file in @('INSTALL.ps1', 'CONFIGURE.ps1', 'OPEN-CONFIG.ps1', 'UNINSTALL.ps1')) {
     Assert-PowerShellSyntax (Join-Path $root $file)
   }
+  foreach ($file in @('INSTALL.cmd', 'CONFIGURE.cmd', 'OPEN-CONFIG.cmd', 'UNINSTALL.cmd')) {
+    Assert-AsciiCmd (Join-Path $root $file)
+  }
   $forbiddenNames = @('.git', '.env', 'settings.json', 'pnpm-lock.yaml', 'npm.cmd', 'npx.cmd', 'pnpm.cmd', 'corepack')
   foreach ($item in @(Get-ChildItem -LiteralPath $root -Recurse -Force)) {
     if ($forbiddenNames -contains $item.Name -or $item.Name -like '.env*' -or $item.Name -in @('.pnpm', '.bin')) {
@@ -71,10 +86,11 @@ try {
   Assert-NoReparsePoint $root
   $secretFiles = @(Get-ChildItem -LiteralPath $root -Recurse -Force -File | Where-Object { $_.Name -like '.env*' -or $_.Name -eq 'settings.json' })
   if ($secretFiles.Count -gt 0) { throw '制品包含运行时凭据文件。' }
-  $manifest = Get-Content -LiteralPath (Join-Path $root 'release-manifest.json') -Raw | ConvertFrom-Json
+  $manifest = Read-Utf8Json (Join-Path $root 'release-manifest.json')
   if ([string]$manifest.product -ne 'database-mcp-server') { throw '制品 product 不匹配。' }
   if ([string]$manifest.target.os -ne 'windows' -or [string]$manifest.target.architecture -ne 'x64') { throw '制品目标平台不匹配。' }
-  if ([string]$manifest.config.path -and [string]$manifest.config.path -ne '%USERPROFILE%\database-mcp-server\config\settings.json') { throw '制品配置路径不匹配。' }
+  $manifestConfigPath = ([string]$manifest.config.path).Replace('/', '\')
+  if ($manifestConfigPath -and $manifestConfigPath -ne '%USERPROFILE%\database-mcp-server\config\settings.json') { throw '制品配置路径不匹配。' }
   $payload = Join-Path $root 'payload'
   if (-not (Test-Path -LiteralPath $payload -PathType Container)) { throw '制品缺少 payload 目录。' }
   $nodeRelativeValue = if ($manifest.runtime.nodePath) { [string]$manifest.runtime.nodePath } else { 'runtime\node.exe' }
@@ -105,7 +121,7 @@ try {
     if ($relative -eq 'SHA256SUMS.txt') { throw 'SHA256SUMS.txt 不得引用自身。' }
     $listed[$relative.ToLowerInvariant()] = $true
     $candidate = [IO.Path]::GetFullPath((Join-Path $root $relative))
-    $rootWithSlash = $root.TrimEnd('\') + '\'
+    $rootWithSlash = [IO.Path]::GetFullPath($root).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $candidate.StartsWith($rootWithSlash, [StringComparison]::OrdinalIgnoreCase)) { throw 'SHA256SUMS.txt 引用了包外路径。' }
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "哈希清单引用不存在：$relative" }
     $actual = (Get-FileHash -LiteralPath $candidate -Algorithm SHA256).Hash.ToLowerInvariant()

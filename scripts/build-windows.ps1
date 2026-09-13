@@ -32,6 +32,18 @@ function Write-Utf8NoBom([string]$Path, [string]$Text) {
   [IO.File]::WriteAllText($Path, $Text, (New-Object -TypeName Text.UTF8Encoding -ArgumentList $false))
 }
 
+function Read-Utf8Json([string]$Path) {
+  $utf8 = New-Object System.Text.UTF8Encoding($false, $true)
+  $text = [IO.File]::ReadAllText($Path, $utf8)
+  return ($text | ConvertFrom-Json)
+}
+
+function Assert-AsciiCmd([string]$Path) {
+  foreach ($byte in [IO.File]::ReadAllBytes($Path)) {
+    if ($byte -gt 0x7f) { throw "批处理入口必须是 ASCII 文本：$Path" }
+  }
+}
+
 function Copy-Tree([string]$Source, [string]$Destination) {
   New-Item -ItemType Directory -Force -Path $Destination | Out-Null
   Copy-Item -Path (Join-Path $Source '*') -Destination $Destination -Recurse -Force
@@ -203,6 +215,9 @@ try {
   foreach ($file in @('INSTALL.ps1', 'CONFIGURE.ps1', 'OPEN-CONFIG.ps1', 'UNINSTALL.ps1')) {
     Assert-PowerShellSyntax (Join-Path $packageRoot $file)
   }
+  foreach ($file in @('INSTALL.cmd', 'CONFIGURE.cmd', 'OPEN-CONFIG.cmd', 'UNINSTALL.cmd')) {
+    Assert-AsciiCmd (Join-Path $packageRoot $file)
+  }
   $packageConfig = Join-Path $packageRoot 'config'
   New-Item -ItemType Directory -Force -Path $packageConfig | Out-Null
   Copy-Item -LiteralPath (Join-Path $repoRoot 'config\settings.example.json') -Destination (Join-Path $packageConfig 'settings.example.json')
@@ -245,10 +260,11 @@ This candidate was assembled for Windows x64 and remains unverified until a clea
     status = $VerificationStatus
     source = $source
     runtime = @{ nodePath = 'runtime/node.exe'; entryPath = 'app/src/index.js'; nodeSha256 = $nodeSourceHash; nodeVersion = $nodeVersion; peFormat = 'PE32+ x86-64' }
-    config = @{ path = '%USERPROFILE%\\database-mcp-server\\config\\settings.json'; schemaVersion = 1; supportsEnvironments = $true; defaultEnvironmentOptional = $true }
+    config = @{ path = '%USERPROFILE%/database-mcp-server/config/settings.json'; schemaVersion = 1; supportsEnvironments = $true; defaultEnvironmentOptional = $true }
     restrictions = @{ targetMachinePackageManagers = @('npm', 'pnpm', 'npx', 'Docker', 'online-downloads') }
   }
   Write-Utf8NoBom (Join-Path $packageRoot 'release-manifest.json') (($manifest | ConvertTo-Json -Depth 12) + "`r`n")
+  $null = Read-Utf8Json (Join-Path $packageRoot 'release-manifest.json')
   Assert-NoReparsePoint $packageRoot
   New-Sha256File $packageRoot (Join-Path $packageRoot 'SHA256SUMS.txt')
   if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }

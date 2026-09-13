@@ -1,23 +1,23 @@
 @echo off
 setlocal
 echo.
-echo 数据库助手安装程序
-echo 正在安装，请稍候...
+echo Database MCP Server installer
+echo Installing...
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0INSTALL.ps1" %*
 set "exitCode=%ERRORLEVEL%"
 if "%exitCode%"=="0" goto success
 echo.
-echo 安装失败，错误码 %exitCode%。
-echo 当前 PowerShell 执行策略：
+echo Install failed. Exit code: %exitCode%.
+echo PowerShell execution policy:
 powershell.exe -NoLogo -NoProfile -Command "Get-ExecutionPolicy -List"
 goto finish
 
 :success
 echo.
-echo 安装命令执行完成。
+echo Install command completed.
 
 :finish
 echo.
-echo 安装窗口将在按键后关闭；如需排查，请先保存上面的完整错误信息。
+echo Press any key to close this window. Save the output above for troubleshooting.
 pause >nul
 exit /b %exitCode%

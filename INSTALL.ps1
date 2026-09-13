@@ -77,7 +77,7 @@ function Verify-Hashes([string]$Root) {
     $expected = $Matches[1].ToLowerInvariant()
     $relative = $Matches[2].Trim()
     $candidate = [IO.Path]::GetFullPath((Join-Path $Root $relative))
-    $rootWithSlash = $Root.TrimEnd('\') + '\'
+    $rootWithSlash = [IO.Path]::GetFullPath($Root).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $candidate.StartsWith($rootWithSlash, [StringComparison]::OrdinalIgnoreCase)) { throw "哈希清单包含包外路径。" }
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "哈希清单引用的文件不存在: $relative" }
     $actual = (Get-FileHash -LiteralPath $candidate -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -91,17 +91,32 @@ function Write-AtomicJson([string]$Path, $Value) {
   Move-Item -LiteralPath $temp -Destination $Path -Force
 }
 
+function Read-Utf8Json([string]$Path) {
+  $utf8 = New-Object System.Text.UTF8Encoding($false, $true)
+  try {
+    $text = [IO.File]::ReadAllText($Path, $utf8)
+  } catch {
+    throw "无法按 UTF-8 读取发布清单：$Path；$($_.Exception.Message)"
+  }
+  try {
+    return ($text | ConvertFrom-Json)
+  } catch {
+    throw "发布清单 JSON 无效：$($_.Exception.Message)；请重新解压完整 ZIP，不要运行被编辑器或网页改写的 release-manifest.json。"
+  }
+}
+
 try {
   $manifestPath = Join-Path $packageRoot 'release-manifest.json'
   if (-not (Test-Path -LiteralPath $manifestPath)) { throw '缺少 release-manifest.json，已停止安装。' }
-  $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+  $manifest = Read-Utf8Json $manifestPath
   $version = [string]$manifest.version
   if ($version -notmatch '^[0-9A-Za-z][0-9A-Za-z._-]*$') { throw '发布清单中的版本号无效。' }
   if ([string]$manifest.product -ne 'database-mcp-server') { throw '发布清单 product 不匹配。' }
   if ([string]$manifest.target.os -ne 'windows' -or [string]$manifest.target.architecture -ne 'x64') {
     throw '发布清单目标必须是 Windows x64。'
   }
-  if ([string]$manifest.config.path -and [string]$manifest.config.path -ne '%USERPROFILE%\database-mcp-server\config\settings.json') {
+  $manifestConfigPath = ([string]$manifest.config.path).Replace('/', '\')
+  if ($manifestConfigPath -and $manifestConfigPath -ne '%USERPROFILE%\database-mcp-server\config\settings.json') {
     throw '发布清单配置路径不属于 database-mcp-server。'
   }
   $manifestStatus = [string]$manifest.status
