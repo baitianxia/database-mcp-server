@@ -33,6 +33,18 @@ function Set-PrivateAcl([string]$Path) {
   }
 }
 
+function Get-Sha256Hex([string]$Path) {
+  $sha = [Security.Cryptography.SHA256]::Create()
+  $stream = $null
+  try {
+    $stream = [IO.File]::OpenRead($Path)
+    return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant()
+  } finally {
+    if ($stream) { $stream.Dispose() }
+    $sha.Dispose()
+  }
+}
+
 function Assert-NoReparsePoint([string]$Root) {
   $items = @(Get-Item -LiteralPath $Root) + @(Get-ChildItem -LiteralPath $Root -Recurse -Force)
   foreach ($item in $items) {
@@ -71,7 +83,12 @@ function Assert-NoForbiddenContent([string]$Root) {
 function Verify-Hashes([string]$Root) {
   $hashFile = Join-Path $Root 'SHA256SUMS.txt'
   if (-not (Test-Path -LiteralPath $hashFile)) { throw '缺少 SHA256SUMS.txt，已停止安装。' }
-  foreach ($line in [IO.File]::ReadAllLines($hashFile)) {
+  $lines = [IO.File]::ReadAllLines($hashFile)
+  $entries = @($lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $_.TrimStart().StartsWith('#') })
+  $total = $entries.Count
+  $checked = 0
+  Write-Host "Verifying package integrity ($total files); do not close this window."
+  foreach ($line in $entries) {
     if ([string]::IsNullOrWhiteSpace($line) -or $line.TrimStart().StartsWith('#')) { continue }
     if ($line -notmatch '^([0-9a-fA-F]{64})\s+\*?(.+)$') { throw "SHA256SUMS.txt 包含无法解析的行。" }
     $expected = $Matches[1].ToLowerInvariant()
@@ -80,8 +97,12 @@ function Verify-Hashes([string]$Root) {
     $rootWithSlash = [IO.Path]::GetFullPath($Root).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $candidate.StartsWith($rootWithSlash, [StringComparison]::OrdinalIgnoreCase)) { throw "哈希清单包含包外路径。" }
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "哈希清单引用的文件不存在: $relative" }
-    $actual = (Get-FileHash -LiteralPath $candidate -Algorithm SHA256).Hash.ToLowerInvariant()
+    $actual = Get-Sha256Hex $candidate
     if ($actual -ne $expected) { throw "文件完整性校验失败: $relative" }
+    $checked++
+    if ($checked -eq 1 -or $checked -eq $total -or $checked % 100 -eq 0) {
+      Write-Host ("Checked {0}/{1} files" -f $checked, $total)
+    }
   }
 }
 
@@ -106,6 +127,7 @@ function Read-Utf8Json([string]$Path) {
 }
 
 try {
+  Write-Host '[1/5] Reading release manifest...'
   $manifestPath = Join-Path $packageRoot 'release-manifest.json'
   if (-not (Test-Path -LiteralPath $manifestPath)) { throw '缺少 release-manifest.json，已停止安装。' }
   $manifest = Read-Utf8Json $manifestPath
@@ -121,8 +143,10 @@ try {
   }
   $manifestStatus = [string]$manifest.status
   if ($manifestStatus -notin @('CANDIDATE_UNVERIFIED', 'VERIFIED')) { throw '发布清单状态无效。' }
+  Write-Host '[2/5] Checking package structure...'
   Assert-NoReparsePoint $packageRoot
   Assert-NoForbiddenContent $packageRoot
+  Write-Host '[3/5] Verifying package files...'
   Verify-Hashes $packageRoot
 
   $payload = Join-Path $packageRoot 'payload'
@@ -136,11 +160,12 @@ try {
   $appSource = Join-Path $payload $appRelative
   if (-not (Test-Path -LiteralPath $nodeSource -PathType Leaf)) { throw "缺少 Windows x64 Node 运行时: $nodeRelative" }
   if (-not (Test-Path -LiteralPath $appSource -PathType Leaf)) { throw "缺少 MCP 入口: $appRelative" }
+  Write-Host '[4/5] Checking bundled runtime and MCP entry...'
   Assert-PeX64 $nodeSource
   if ($manifest.runtime.nodeSha256) {
     $expectedNodeHash = [string]$manifest.runtime.nodeSha256
     if ($expectedNodeHash -notmatch '^[0-9a-fA-F]{64}$') { throw '发布清单中的 nodeSha256 无效。' }
-    $actualNodeHash = (Get-FileHash -LiteralPath $nodeSource -Algorithm SHA256).Hash.ToLowerInvariant()
+    $actualNodeHash = Get-Sha256Hex $nodeSource
     if ($actualNodeHash -ne $expectedNodeHash.ToLowerInvariant()) { throw 'Node 运行时 SHA-256 与发布清单不匹配。' }
   }
 
@@ -162,6 +187,7 @@ try {
   $exampleCreated = $false
 
   try {
+    Write-Host '[5/5] Copying files and running MCP smoke check...'
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     Copy-Item -Path (Join-Path $payload '*') -Destination $stage -Recurse -Force
     $nodeTarget = Join-Path $stage $nodeRelative

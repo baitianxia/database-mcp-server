@@ -1,9 +1,9 @@
 {
   "baselineVersion": 1,
   "product": "database-mcp-server",
-  "packageVersion": "0.2.3",
-  "revision": "f0ed9929cbb70d753d82c7986b29f6ff3cba95f6a070dc95a38dc265c2671607",
-  "generatedAt": "2026-09-13T12:37:25.639Z",
+  "packageVersion": "0.2.4",
+  "revision": "0ef547e1977087710db18d499d5fb0687fa260512a77602cb953d52a64bd0147",
+  "generatedAt": "2026-09-13T12:52:59.929Z",
   "source": "local content digest (supplemental to the Git commit)",
   "files": [
     {
@@ -48,11 +48,11 @@
     },
     {
       "path": "docs/windows-release.md",
-      "sha256": "8deb05898275df71b9293254ef9cd0d31099206d826389e52fa98285f8320161"
+      "sha256": "cc673d93b995413be3a2bd929c6ea92a0c1fdcc2363f281bc1ce2c77cd15f36b"
     },
     {
       "path": "docs/windows-remediation-2026-09.md",
-      "sha256": "727ba30c64091e33570223f507583473a7d23c0430ec90a850a2ea6729a0a673"
+      "sha256": "78a2bfd674b01ae2bb01e73b2336693e48d36ed5e7e70554c5e2ae43140da7dc"
     },
     {
       "path": "INSTALL.cmd",
@@ -60,7 +60,7 @@
     },
     {
       "path": "INSTALL.ps1",
-      "sha256": "d87ad8ff2cbe44c1b3ae45c6c0c60bf43a4da70dd562aade3328b59cb29e7c49"
+      "sha256": "846e49e7207f28a66d614322106609690e0fe6e1089dcb62ff344d9c736280aa"
     },
     {
       "path": "OPEN-CONFIG.cmd",
@@ -72,7 +72,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "1e35b82aa5a25d30afee71a93a339e1d99b5e8b64c007abc51802c63deec8eb6"
+      "sha256": "678c415b24b65804d43e05acaaa0c38b248b41fc70835eb3f00685c1a6bee546"
     },
     {
       "path": "pnpm-lock.yaml",
@@ -80,7 +80,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "767a89ae5df9000cc9ef62c928302179605b65f1ec921724f93fcbd28c24ac75"
+      "sha256": "30eb7ebbd8cd0745a9fd50d7ee50332d9c28a95e73ded32391a9029359fc083a"
     },
     {
       "path": "scripts/build-windows.cmd",
@@ -108,7 +108,7 @@
     },
     {
       "path": "src/index.js",
-      "sha256": "47e8569b93a9eea36806db99670641be89e2abe85da80b547eb0b6b32c1d6056"
+      "sha256": "4f03facf07af0c5faacdea9498515609e25c56b87cb424260916e37f865a8f96"
     },
     {
       "path": "src/sql.js",
