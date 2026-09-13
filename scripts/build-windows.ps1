@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)]
   [string]$NodeRuntime,
@@ -43,6 +43,16 @@ function Assert-NoReparsePoint([string]$Root) {
     if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
       throw "输入或输出包含不允许的 reparse point: $($item.FullName)"
     }
+  }
+}
+
+function Assert-PowerShellSyntax([string]$Path) {
+  $tokens = $null
+  $errors = $null
+  [System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$tokens, [ref]$errors) | Out-Null
+  if ($errors.Count -gt 0) {
+    $details = ($errors | ForEach-Object { $_.Message }) -join ' | '
+    throw "PowerShell 语法检查失败：$Path；$details"
   }
 }
 
@@ -189,6 +199,9 @@ try {
 
   foreach ($file in @('README.md', 'START-HERE.html', 'claude-code.mcp.example.json', 'INSTALL.cmd', 'INSTALL.ps1', 'CONFIGURE.cmd', 'CONFIGURE.ps1', 'OPEN-CONFIG.cmd', 'OPEN-CONFIG.ps1', 'UNINSTALL.cmd', 'UNINSTALL.ps1')) {
     Copy-Item -LiteralPath (Join-Path $repoRoot $file) -Destination (Join-Path $packageRoot $file)
+  }
+  foreach ($file in @('INSTALL.ps1', 'CONFIGURE.ps1', 'OPEN-CONFIG.ps1', 'UNINSTALL.ps1')) {
+    Assert-PowerShellSyntax (Join-Path $packageRoot $file)
   }
   $packageConfig = Join-Path $packageRoot 'config'
   New-Item -ItemType Directory -Force -Path $packageConfig | Out-Null

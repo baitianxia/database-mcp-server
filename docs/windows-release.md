@@ -13,7 +13,7 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -NodeRuntimeArchiveSha256 <官方归档 SHA-256>
 ```
 
-脚本只收集白名单文件，使用 `pnpm install --prod` 和 hoisted 复制布局生成生产依赖，运行时只复制 `node.exe`，并写入 CycloneDX 简化 SBOM、第三方声明、运行时哈希、版本来源、逐文件 `SHA256SUMS.txt` 和 ZIP sidecar 哈希。目标机不需要 Node、npm、pnpm、npx、Docker 或联网下载。
+脚本只收集白名单文件，使用 `pnpm install --prod` 和 hoisted 复制布局生成生产依赖，运行时只复制 `node.exe`，并写入 CycloneDX 简化 SBOM、第三方声明、运行时哈希、版本来源、逐文件 `SHA256SUMS.txt` 和 ZIP sidecar 哈希。打包和清单检查还会用 PowerShell AST 解析器检查随包 `.ps1`，避免语法错误进入 ZIP。目标机不需要 Node、npm、pnpm、npx、Docker 或联网下载。
 
 构建清单默认是 `CANDIDATE_UNVERIFIED`。在干净 Windows x64 + PowerShell 5.1 上完成安装、首次启动、配置重载、覆盖升级、故障回滚和卸载后，把证据目录传给构建脚本，才可以使用 `-VerificationStatus VERIFIED -WindowsEvidencePath <path>`。当前仓库只在 macOS/Linux 上完成 Node 语法、单元和 MCP 握手检查，因此不能宣称 Windows 已验收。
 

@@ -37,15 +37,15 @@ MySQL 保留为当前 adapter/驱动能力，不能成为产品级工程名、MC
 
 - `src/config.js` 已使用用户目录 `config/settings.json`，支持 `DATABASE_CONFIG_PATH`、schemaVersion 1、原子写入、脱敏摘要和权限加固；配置可通过 `environments` 保存多套连接，并用可选 `defaultEnvironment` 指定省略环境参数时的回退。
 - `src/index.js` 已固定 `database-mcp` 身份，并提供环境目录、默认环境设置和带 `environment` 参数的通用 `database_*` 工具；服务不保存当前环境。
-- `scripts/build-windows.ps1` 只接受显式提供的 Windows x64 Node 运行时，使用生产依赖和白名单文件生成 `database-mcp-server-<version>-windows-x64.zip`；默认清单状态为 `CANDIDATE_UNVERIFIED`。
+- `scripts/build-windows.ps1` 只接受显式提供的 Windows x64 Node 运行时，使用生产依赖和白名单文件生成 `database-mcp-server-<version>-windows-x64.zip`；打包前会用 PowerShell AST 解析器检查随包 `.ps1`；默认清单状态为 `CANDIDATE_UNVERIFIED`。
 - `INSTALL.cmd` 通过单独的 `powershell.exe -ExecutionPolicy Bypass` 子进程启动，校验逐文件 SHA256 后执行版本目录安装、配置外置、原子状态切换和失败恢复；失败时保留窗口、回显原始错误，并在日志目录可写时将输出写入 `%USERPROFILE%\database-mcp-server\logs\install.log`；日志目录不可写时直接输出；`CONFIGURE.cmd`、`OPEN-CONFIG.cmd`、`UNINSTALL.cmd` 只访问本工程用户目录。
 - 本机 `node --check` 和 `node --test` 已通过；由于当前执行环境不是 Windows x64，不能把这些结果当作 Windows 验收证据，也未将候选制品标记为 `VERIFIED`。
 - 当前目录没有可写 Git 元数据，因此以根目录的 [`release-baseline.json`](../release-baseline.json) 保存逐文件内容摘要和基线 revision；后续若纳入 Git，发布清单仍应同时记录 Git commit 与该摘要。
 
-## 当前候选制品（2026-09-08）
+## 当前候选制品（2026-09-13）
 
-- 文件：`dist/database-mcp-server-0.2.0-windows-x64.zip`
-- 外置校验：同目录的 `database-mcp-server-0.2.0-windows-x64.zip.sha256`；发布清单中的 `source.revision` 指向根目录内容基线。
+- 文件：`dist/database-mcp-server-0.2.1-windows-x64.zip`
+- 外置校验：同目录的 `database-mcp-server-0.2.1-windows-x64.zip.sha256`；发布清单中的 `source.revision` 指向根目录内容基线。
 - 运行时：Node.js 22.14.0 Windows x64，PE machine `0x8664`；官方归档 SHA-256 已在构建前核对。
 - 已完成的非 Windows 检查：ZIP 单顶层目录、逐文件 SHA-256、sidecar SHA-256、无 reparse/symlink、无凭据文件、Node 入口语法和 MCP initialize 冒烟。
 - 清单状态仍为 `CANDIDATE_UNVERIFIED`；没有把 macOS 主机上的检查当作 Windows PowerShell 5.1 验收。

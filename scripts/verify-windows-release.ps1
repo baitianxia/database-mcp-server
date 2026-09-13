@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)]
   [string]$ZipPath
@@ -14,6 +14,16 @@ function Assert-NoReparsePoint([string]$Root) {
     if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
       throw "发现 reparse point: $($item.FullName)"
     }
+  }
+}
+
+function Assert-PowerShellSyntax([string]$Path) {
+  $tokens = $null
+  $errors = $null
+  [System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$tokens, [ref]$errors) | Out-Null
+  if ($errors.Count -gt 0) {
+    $details = ($errors | ForEach-Object { $_.Message }) -join ' | '
+    throw "PowerShell 语法检查失败：$Path；$details"
   }
 }
 
@@ -48,6 +58,9 @@ try {
   $required = @('README.md', 'START-HERE.html', 'claude-code.mcp.example.json', 'INSTALL.cmd', 'INSTALL.ps1', 'CONFIGURE.cmd', 'CONFIGURE.ps1', 'OPEN-CONFIG.cmd', 'OPEN-CONFIG.ps1', 'UNINSTALL.cmd', 'UNINSTALL.ps1', 'config\settings.example.json', 'payload', 'release-manifest.json', 'SHA256SUMS.txt')
   foreach ($item in $required) {
     if (-not (Test-Path -LiteralPath (Join-Path $root $item))) { throw "缺少必需文件：$item" }
+  }
+  foreach ($file in @('INSTALL.ps1', 'CONFIGURE.ps1', 'OPEN-CONFIG.ps1', 'UNINSTALL.ps1')) {
+    Assert-PowerShellSyntax (Join-Path $root $file)
   }
   $forbiddenNames = @('.git', '.env', 'settings.json', 'pnpm-lock.yaml', 'npm.cmd', 'npx.cmd', 'pnpm.cmd', 'corepack')
   foreach ($item in @(Get-ChildItem -LiteralPath $root -Recurse -Force)) {
