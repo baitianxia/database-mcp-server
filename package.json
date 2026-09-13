@@ -1,6 +1,6 @@
 {
   "name": "database-mcp-server",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "license": "UNLICENSED",
   "description": "A configurable database assistant MCP server for Claude Code, currently backed by MySQL.",

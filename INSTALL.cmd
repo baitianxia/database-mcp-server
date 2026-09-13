@@ -1,37 +1,23 @@
 @echo off
 setlocal
-set "installLogDirectory=%USERPROFILE%\database-mcp-server\logs"
-set "installLog=%installLogDirectory%\install.log"
-if not exist "%installLogDirectory%\." mkdir "%installLogDirectory%" >nul 2>&1
-if not exist "%installLogDirectory%\." goto runWithoutLog
-type nul > "%installLog" 2>nul
-if errorlevel 1 goto runWithoutLog
-
-echo 正在安装数据库助手，请稍候...
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0INSTALL.ps1" %* > "%installLog" 2>&1
-set "exitCode=%ERRORLEVEL%"
-if "%exitCode%"=="0" goto showLog
-powershell.exe -NoLogo -NoProfile -Command "Get-ExecutionPolicy -List" >> "%installLog" 2>&1
-
-:showLog
-type "%installLog%"
-goto report
-
-:runWithoutLog
-set "installLog="
-echo 无法写入安装日志，将直接显示安装输出。
+echo.
+echo 数据库助手安装程序
+echo 正在安装，请稍候...
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0INSTALL.ps1" %*
 set "exitCode=%ERRORLEVEL%"
-if "%exitCode%"=="0" goto report
-powershell.exe -NoLogo -NoProfile -Command "Get-ExecutionPolicy -List"
-
-:report
-if "%exitCode%"=="0" goto done
+if "%exitCode%"=="0" goto success
 echo.
 echo 安装失败，错误码 %exitCode%。
-if not "%installLog%"=="" echo 详细输出已保存到："%installLog%"
-echo 请把上面的原始错误和执行策略列表提供给维护者或管理员。
-pause
+echo 当前 PowerShell 执行策略：
+powershell.exe -NoLogo -NoProfile -Command "Get-ExecutionPolicy -List"
+goto finish
 
-:done
+:success
+echo.
+echo 安装命令执行完成。
+
+:finish
+echo.
+echo 安装窗口将在按键后关闭；如需排查，请先保存上面的完整错误信息。
+pause >nul
 exit /b %exitCode%

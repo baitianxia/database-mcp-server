@@ -5,6 +5,16 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $packageRoot = (Resolve-Path (Split-Path -Parent $MyInvocation.MyCommand.Path)).Path
+$logDirectory = Join-Path (Join-Path $env:USERPROFILE 'database-mcp-server') 'logs'
+$logPath = Join-Path $logDirectory 'install.log'
+$transcriptStarted = $false
+try {
+  New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
+  Start-Transcript -LiteralPath $logPath -Force | Out-Null
+  $transcriptStarted = $true
+} catch {
+  # Installation must still run when the project log directory is unavailable.
+}
 
 function Write-Utf8NoBom([string]$Path, [string]$Text) {
   $parent = Split-Path -Parent $Path
@@ -211,6 +221,10 @@ try {
     throw
   }
 } catch {
-  Write-Error ("安装未完成：" + $_.Exception.Message)
+  $message = "安装未完成：$($_.Exception.Message)"
+  if ($transcriptStarted) { $message += "；日志：$logPath" }
+  Write-Error $message
   exit 1
+} finally {
+  if ($transcriptStarted) { Stop-Transcript | Out-Null }
 }
