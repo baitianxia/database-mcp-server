@@ -2,8 +2,8 @@
   "baselineVersion": 1,
   "product": "database-mcp-server",
   "packageVersion": "0.2.3",
-  "revision": "7e7ef48a6461d6e497414aa75844f5c601f88e9366bd36931a6bc350fbf1e208",
-  "generatedAt": "2026-09-13T12:36:22.574Z",
+  "revision": "f0ed9929cbb70d753d82c7986b29f6ff3cba95f6a070dc95a38dc265c2671607",
+  "generatedAt": "2026-09-13T12:37:25.639Z",
   "source": "local content digest (supplemental to the Git commit)",
   "files": [
     {
@@ -52,7 +52,7 @@
     },
     {
       "path": "docs/windows-remediation-2026-09.md",
-      "sha256": "62163602dbc91f2aedd54bd3e363211fe0f60924197c888947979d26c18b9acb"
+      "sha256": "727ba30c64091e33570223f507583473a7d23c0430ec90a850a2ea6729a0a673"
     },
     {
       "path": "INSTALL.cmd",

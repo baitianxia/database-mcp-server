@@ -40,7 +40,7 @@ MySQL 保留为当前 adapter/驱动能力，不能成为产品级工程名、MC
 - `scripts/build-windows.ps1` 只接受显式提供的 Windows x64 Node 运行时，使用生产依赖和白名单文件生成 `database-mcp-server-<version>-windows-x64.zip`；打包前会用 PowerShell AST 解析器检查随包 `.ps1`；默认清单状态为 `CANDIDATE_UNVERIFIED`。
 - `INSTALL.cmd` 通过单独的 `powershell.exe -ExecutionPolicy Bypass` 子进程启动，直接回显全部输出，并无论成功或失败都停留到用户按键；脚本能启动时还会把输出写入 `%USERPROFILE%\database-mcp-server\logs\install.log`；日志目录不可写或脚本在解析前失败时仍直接显示错误；`CONFIGURE.cmd`、`OPEN-CONFIG.cmd`、`UNINSTALL.cmd` 只访问本工程用户目录。
 - 本机 `node --check` 和 `node --test` 已通过；由于当前执行环境不是 Windows x64，不能把这些结果当作 Windows 验收证据，也未将候选制品标记为 `VERIFIED`。
-- Git 仓库已初始化并推送到公开远端；根目录的 [`release-baseline.json`](../release-baseline.json) 继续保存逐文件内容摘要，发布清单同时记录该摘要 revision 和对应提交。
+- Git 仓库已初始化并推送到公开远端；根目录的 [`release-baseline.json`](../release-baseline.json) 继续保存逐文件内容摘要，构建脚本会在可用时把 Git 提交写入发布清单，否则使用该摘要 revision。
 
 ## 当前候选制品（2026-09-13）
 
