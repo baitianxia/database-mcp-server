@@ -1,15 +1,22 @@
 ﻿[CmdletBinding()]
 param(
-  [switch]$KeepOlderVersions
+  [switch]$KeepOlderVersions,
+  [string]$LogPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $packageRoot = (Resolve-Path (Split-Path -Parent $MyInvocation.MyCommand.Path)).Path
 $logDirectory = Join-Path (Join-Path $env:USERPROFILE 'database-mcp-server') 'logs'
-$logPath = Join-Path $logDirectory 'install.log'
+if ([string]::IsNullOrWhiteSpace($LogPath)) {
+  $LogPath = Join-Path $logDirectory 'install.log'
+} else {
+  $LogPath = [IO.Path]::GetFullPath($LogPath)
+}
+$logPath = $LogPath
 $transcriptStarted = $false
 try {
-  New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
+  $logParent = Split-Path -Parent $logPath
+  if ($logParent) { New-Item -ItemType Directory -Force -Path $logParent | Out-Null }
   Start-Transcript -LiteralPath $logPath -Force | Out-Null
   $transcriptStarted = $true
 } catch {
@@ -43,6 +50,37 @@ function Get-Sha256Hex([string]$Path) {
     if ($stream) { $stream.Dispose() }
     $sha.Dispose()
   }
+}
+
+function Invoke-NativeChecked {
+  param(
+    [Parameter(Mandatory = $true)][string]$Executable,
+    [Parameter(Mandatory = $true)][string[]]$Arguments,
+    [Parameter(Mandatory = $true)][string]$Label,
+    [AllowNull()][string]$InputText = $null
+  )
+  $output = @()
+  $exitCode = 1
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    # Windows PowerShell 5.1 turns redirected native stderr into ErrorRecord
+    # objects. Keep it visible and in the transcript, but decide success from
+    # the native exit code.
+    $ErrorActionPreference = 'Continue'
+    if ($null -eq $InputText) {
+      $output = @(& $Executable @Arguments 2>&1)
+    } else {
+      $output = @($InputText | & $Executable @Arguments 2>&1)
+    }
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+  foreach ($line in $output) {
+    if ($null -ne $line) { Write-Host ([string]$line) }
+  }
+  if ($exitCode -ne 0) { throw "$Label failed with exit code $exitCode" }
+  return $output
 }
 
 function Assert-NoReparsePoint([string]$Root) {
@@ -193,11 +231,10 @@ try {
     $nodeTarget = Join-Path $stage $nodeRelative
     $appTarget = Join-Path $stage $appRelative
     Assert-PeX64 $nodeTarget
-    & $nodeTarget --check $appTarget
-    if ($LASTEXITCODE -ne 0) { throw 'MCP 入口语法检查失败。' }
+    Invoke-NativeChecked $nodeTarget @('--check', $appTarget) 'MCP entry syntax check' | Out-Null
     $probe = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"installer-probe","version":"1"}}}'
-    $probeOutput = $probe | & $nodeTarget $appTarget 2>$null
-    if ($LASTEXITCODE -ne 0 -or (($probeOutput -join "`n") -notmatch '"name"\s*:\s*"database-mcp"')) {
+    $probeOutput = @(Invoke-NativeChecked $nodeTarget @($appTarget) 'MCP startup smoke check' $probe)
+    if (($probeOutput -join "`n") -notmatch '"name"\s*:\s*"database-mcp"') {
       throw 'MCP 启动冒烟检查失败。'
     }
 

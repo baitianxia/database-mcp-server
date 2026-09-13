@@ -1,9 +1,9 @@
 {
   "baselineVersion": 1,
   "product": "database-mcp-server",
-  "packageVersion": "0.2.4",
-  "revision": "0ef547e1977087710db18d499d5fb0687fa260512a77602cb953d52a64bd0147",
-  "generatedAt": "2026-09-13T12:52:59.929Z",
+  "packageVersion": "0.2.5",
+  "revision": "c317e15afb42cc4b33ede01fc85155e45b30d080f4e5043f5614b4827008ce13",
+  "generatedAt": "2026-09-13T12:58:52.289Z",
   "source": "local content digest (supplemental to the Git commit)",
   "files": [
     {
@@ -48,19 +48,19 @@
     },
     {
       "path": "docs/windows-release.md",
-      "sha256": "cc673d93b995413be3a2bd929c6ea92a0c1fdcc2363f281bc1ce2c77cd15f36b"
+      "sha256": "62d25c490a4ce6468796c82de0efae2568b04c6a0e56d31320949c0fd1979994"
     },
     {
       "path": "docs/windows-remediation-2026-09.md",
-      "sha256": "78a2bfd674b01ae2bb01e73b2336693e48d36ed5e7e70554c5e2ae43140da7dc"
+      "sha256": "2112ce5df1126f6a3aff426f35054b7018007274194a0754efe41ed9920d7cf9"
     },
     {
       "path": "INSTALL.cmd",
-      "sha256": "17879ebadd4648061202365501ad90ee4fae608423aadea52a6014ce908ab433"
+      "sha256": "18b3e879761a297a12cab7cb5ce42c71a992d4c1539f9213124cdb4055c777e0"
     },
     {
       "path": "INSTALL.ps1",
-      "sha256": "846e49e7207f28a66d614322106609690e0fe6e1089dcb62ff344d9c736280aa"
+      "sha256": "a581798f77344fe93dcf50dfd70b2776ec049f139051d9c1c71cc2cfc1160ea5"
     },
     {
       "path": "OPEN-CONFIG.cmd",
@@ -72,7 +72,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "678c415b24b65804d43e05acaaa0c38b248b41fc70835eb3f00685c1a6bee546"
+      "sha256": "cce6f47f8672d2287c19e1e3273998311c55c6b1a072136673e648fbd5b107a4"
     },
     {
       "path": "pnpm-lock.yaml",
@@ -80,7 +80,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "30eb7ebbd8cd0745a9fd50d7ee50332d9c28a95e73ded32391a9029359fc083a"
+      "sha256": "437cba45d28fdc2a0d619a7eb5ed011626a9635591ef3febeb26d74a90ae4828"
     },
     {
       "path": "scripts/build-windows.cmd",
@@ -108,7 +108,7 @@
     },
     {
       "path": "src/index.js",
-      "sha256": "4f03facf07af0c5faacdea9498515609e25c56b87cb424260916e37f865a8f96"
+      "sha256": "b91032e418cef20d8cc7a8fb020257130627a0f4c9e9b5bb8c32fd909eeb574b"
     },
     {
       "path": "src/sql.js",

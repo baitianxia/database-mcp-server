@@ -44,8 +44,8 @@ MySQL 保留为当前 adapter/驱动能力，不能成为产品级工程名、MC
 
 ## 当前候选制品（2026-09-13）
 
-- 文件：`dist/database-mcp-server-0.2.4-windows-x64.zip`
-- 外置校验：同目录的 `database-mcp-server-0.2.4-windows-x64.zip.sha256`；发布清单中的 `source.revision` 指向根目录内容基线。
+- 文件：`dist/database-mcp-server-0.2.5-windows-x64.zip`
+- 外置校验：同目录的 `database-mcp-server-0.2.5-windows-x64.zip.sha256`；发布清单中的 `source.revision` 指向根目录内容基线。
 - 运行时：Node.js 22.14.0 Windows x64，PE machine `0x8664`；官方归档 SHA-256 已在构建前核对。
 - 已完成的非 Windows 检查：ZIP 单顶层目录、逐文件 SHA-256、sidecar SHA-256、无 reparse/symlink、无凭据文件、Node 入口语法和 MCP initialize 冒烟。
 - 清单状态仍为 `CANDIDATE_UNVERIFIED`；没有把 macOS 主机上的检查当作 Windows PowerShell 5.1 验收。

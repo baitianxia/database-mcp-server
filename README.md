@@ -177,7 +177,7 @@ pnpm test
 
 Windows 公开制品不要求目标机安装 Node.js、npm、pnpm、npx、Docker 或联网下载；构建脚本会把 Node 运行时和生产依赖放进 ZIP。请先把 ZIP 完整解压到一个普通目录，再运行 `START-HERE.html` 或 `INSTALL.cmd`，不要直接从压缩包预览窗口启动。然后运行 `CONFIGURE.cmd` 从模板创建 `%USERPROFILE%\database-mcp-server\config\settings.json`；升级会保留配置，卸载默认也保留配置。
 
-如果双击 `INSTALL.cmd` 失败，窗口会保留并显示 PowerShell 的原始错误；日志目录可写时，完整输出还会保存到 `%USERPROFILE%\database-mcp-server\logs\install.log`。日志目录不可写时，入口会直接显示输出，不会因为记录日志失败而跳过安装。入口批处理文件只使用 ASCII 文本，避免 Windows 代码页把中文提示误当成命令；安装清单按 UTF-8 读取。请把该文件（或窗口）中的错误原文和 `Get-ExecutionPolicy -List` 输出交给管理员或维护者，不要只提供“错误码”。
+如果双击 `INSTALL.cmd` 失败，窗口会保留并显示 PowerShell 的原始错误，并自动显示临时安装日志的最后 80 行；日志默认位于 `%TEMP%\database-mcp-server\INSTALL-*.log`，直接运行 `INSTALL.ps1` 时才使用 `%USERPROFILE%\database-mcp-server\logs\install.log`。入口批处理文件只使用 ASCII 文本，避免 Windows 代码页把中文提示误当成命令；安装清单按 UTF-8 读取。请把该文件（或窗口）中的错误原文和 `Get-ExecutionPolicy -List` 输出交给管理员或维护者，不要只提供“错误码”。
 
 真实 Windows x64 验收需要在干净 Windows + PowerShell 5.1 上完成；本仓库提供构建和清单脚本，但 macOS/Linux 本地检查不能替代该验收。
 
@@ -189,7 +189,7 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -NodeRuntime C:\path\to\node-v22.x-win-x64.zip
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -File .\scripts\verify-windows-release.ps1 `
-  -ZipPath .\dist\database-mcp-server-0.2.4-windows-x64.zip
+  -ZipPath .\dist\database-mcp-server-0.2.5-windows-x64.zip
 ```
 
 如果能提供运行时来源，还可以把官方归档地址和 SHA-256 写入清单：
