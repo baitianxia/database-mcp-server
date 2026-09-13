@@ -36,7 +36,7 @@ const document = {
   packageVersion: packageJson.version,
   revision,
   generatedAt: new Date().toISOString(),
-  source: 'local content digest (Git metadata unavailable in this workspace)',
+  source: 'local content digest (supplemental to the Git commit)',
   files,
 };
 await fs.writeFile(output, `${JSON.stringify(document, null, 2)}\n`, 'utf8');

@@ -2,9 +2,9 @@
   "baselineVersion": 1,
   "product": "database-mcp-server",
   "packageVersion": "0.2.3",
-  "revision": "5587e305ccf9fcdf8ad53fe2ea6db92b1fff55e5cf33dd5993d30471e63ce88b",
-  "generatedAt": "2026-09-13T12:33:59.129Z",
-  "source": "local content digest (Git metadata unavailable in this workspace)",
+  "revision": "7e7ef48a6461d6e497414aa75844f5c601f88e9366bd36931a6bc350fbf1e208",
+  "generatedAt": "2026-09-13T12:36:22.574Z",
+  "source": "local content digest (supplemental to the Git commit)",
   "files": [
     {
       "path": ".DS_Store",
@@ -52,7 +52,7 @@
     },
     {
       "path": "docs/windows-remediation-2026-09.md",
-      "sha256": "a17bba120cda1e66792bb37355844101d3303309298c8e6325a1abfca1986ce4"
+      "sha256": "62163602dbc91f2aedd54bd3e363211fe0f60924197c888947979d26c18b9acb"
     },
     {
       "path": "INSTALL.cmd",
@@ -92,7 +92,7 @@
     },
     {
       "path": "scripts/create-source-baseline.mjs",
-      "sha256": "54c77311659589dd1ecc3d2559d77062bebab69d27f41b378981043d37765943"
+      "sha256": "a4bf10fedbd35981522c7de899da32ce302e08e179ae21bbcfe8d9c6aec44860"
     },
     {
       "path": "scripts/verify-windows-release.ps1",
