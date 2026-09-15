@@ -8,6 +8,8 @@
 
 配置路径由 `DATABASE_CONFIG_PATH` 显式覆盖，否则使用 `%USERPROFILE%\database-mcp-server\config\settings.json`（macOS/Linux 对应 `$HOME/database-mcp-server/config/settings.json`）。配置文档的 `schemaVersion` 当前为 `1`。写入使用临时文件加原子 rename；POSIX 文件权限为 `0600`，Windows 安装入口负责移除继承 ACL 并只授权当前用户。一个文档可以通过 `environments` 保存多个独立连接；`defaultEnvironment` 是可选回退，服务不保存“当前环境”。
 
+Windows 安装入口在完成包完整性、运行时和 MCP 冒烟检查后，复用当前用户已经安装的 Claude Code CLI，执行用户级 `mcp remove/add/get`，把 `database-mcp` 注册到 Claude 用户配置（默认 `%USERPROFILE%\.claude.json`，或 `CLAUDE_CONFIG_DIR\.claude.json`）。注册项直接执行包内 `node.exe` 和固定的 `src/index.js`，仅传递 `DATABASE_CONFIG_PATH`；安装器不安装或下载 Claude Code，注册验证失败时恢复原用户配置并使安装失败。卸载入口会注销该用户级条目，同时按选项保留数据库配置。
+
 ## 工具契约
 
 | 工具 | 输入 | 行为 |

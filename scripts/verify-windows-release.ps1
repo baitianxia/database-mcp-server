@@ -77,6 +77,14 @@ try {
   foreach ($file in @('INSTALL.cmd', 'CONFIGURE.cmd', 'OPEN-CONFIG.cmd', 'UNINSTALL.cmd')) {
     Assert-AsciiCmd (Join-Path $root $file)
   }
+  $installerText = [IO.File]::ReadAllText((Join-Path $root 'INSTALL.ps1'))
+  foreach ($requiredPattern in @('Register-ClaudeCodeMcp', 'mcp.*add', '--scope.*user', 'Assert-ClaudeUserMcp')) {
+    if ($installerText -notmatch $requiredPattern) { throw "INSTALL.ps1 缺少 Claude Code 用户级注册校验：$requiredPattern" }
+  }
+  $uninstallerText = [IO.File]::ReadAllText((Join-Path $root 'UNINSTALL.ps1'))
+  if ($uninstallerText -notmatch 'Remove-ClaudeCodeMcp|mcp.*remove') {
+    throw 'UNINSTALL.ps1 缺少 Claude Code 用户级注销逻辑。'
+  }
   $forbiddenNames = @('.git', '.env', 'settings.json', 'pnpm-lock.yaml', 'npm.cmd', 'npx.cmd', 'pnpm.cmd', 'corepack')
   foreach ($item in @(Get-ChildItem -LiteralPath $root -Recurse -Force)) {
     if ($forbiddenNames -contains $item.Name -or $item.Name -like '.env*' -or $item.Name -in @('.pnpm', '.bin')) {

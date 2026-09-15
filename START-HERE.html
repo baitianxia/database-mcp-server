@@ -18,12 +18,12 @@
   <ol>
     <li>请先把 ZIP 完整解压到普通目录，再在本窗口所在目录运行 <code>INSTALL.cmd</code> 完成首次安装或升级；不要从压缩包预览窗口直接启动。</li>
     <li>运行 <code>CONFIGURE.cmd</code>，从模板创建并填写 <code>%USERPROFILE%\database-mcp-server\config\settings.json</code>。</li>
-    <li>在 Claude Code 中注册名称 <code>database-mcp</code>，先调用 <code>database_config_status</code> 或 <code>database_environment_list</code>，再用 <code>environment</code> 参数调用 <code>database_ping</code>。</li>
+    <li><code>INSTALL.cmd</code> 会使用当前用户已有的 Claude Code 自动注册用户级 <code>database-mcp</code>；安装完成后重启 Claude Code，在任意项目运行 <code>/mcp</code> 确认，再调用 <code>database_config_status</code> 或 <code>database_environment_list</code>。</li>
   </ol>
   <p class="note">配置文件可以包含明文用户名和密码，只应让当前 Windows 用户读取。密码会被服务脱敏，不会出现在状态、错误或工具响应中；请不要把配置文件复制到 Git、压缩包或共享目录。</p>
-  <p class="note">如果安装失败，窗口会保留并显示原始错误；日志目录可写时，完整输出保存在 <code>%USERPROFILE%\database-mcp-server\logs\install.log</code>。目录不可写时会直接显示输出。</p>
+  <p class="note">如果安装失败，窗口会保留并显示原始错误；<code>INSTALL.cmd</code> 的本次日志保存在 <code>%TEMP%\database-mcp-server\INSTALL-*.log</code>，直接运行 <code>INSTALL.ps1</code> 时才使用 <code>%USERPROFILE%\database-mcp-server\logs\install.log</code>。</p>
   <h2>修改配置</h2>
   <p>编辑后调用 <code>database_config_reload</code> 即可生效，无需重启 Claude Code。没有 <code>defaultEnvironment</code> 时，数据库工具必须显式传环境名；<code>UNINSTALL.cmd</code> 默认保留配置。</p>
-  <p>完整说明请阅读同目录的 <code>README.md</code>；清单和 <code>SHA256SUMS.txt</code> 用于检查制品完整性。</p>
+  <p>如果当前用户不能运行 <code>claude</code>，安装器会停止并显示原因，不会安装或下载 Claude Code。完整说明请阅读同目录的 <code>README.md</code>；清单和 <code>SHA256SUMS.txt</code> 用于检查制品完整性。</p>
 </body>
 </html>

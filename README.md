@@ -126,7 +126,9 @@ macOS/Linux: $HOME/database-mcp-server/config/settings.json
 
 ## 接入 Claude Code
 
-项目中的 [claude-code.mcp.example.json](claude-code.mcp.example.json) 可作为 stdio 注册模板：
+Windows ZIP 的 `INSTALL.cmd` 会复用当前用户已有的 `claude.exe` 或 `claude.cmd`，通过 Claude Code CLI 的 `mcp add --scope user` 自动注册 `database-mcp`，并读取用户级配置核对 Node、入口和 `DATABASE_CONFIG_PATH`。安装器不会安装、升级或下载 Claude Code；如果当前用户不能运行 `claude`，安装会失败并恢复原用户配置。安装完成后请重启 Claude Code，在任意项目运行 `/mcp` 确认 `database-mcp`。
+
+源码或 macOS/Linux 环境可以参考 [claude-code.mcp.example.json](claude-code.mcp.example.json) 手工注册：
 
 ```json
 {
@@ -175,7 +177,7 @@ pnpm run check
 pnpm test
 ```
 
-Windows 公开制品不要求目标机安装 Node.js、npm、pnpm、npx、Docker 或联网下载；构建脚本会把 Node 运行时和生产依赖放进 ZIP。请先把 ZIP 完整解压到一个普通目录，再运行 `START-HERE.html` 或 `INSTALL.cmd`，不要直接从压缩包预览窗口启动。然后运行 `CONFIGURE.cmd` 从模板创建 `%USERPROFILE%\database-mcp-server\config\settings.json`；升级会保留配置，卸载默认也保留配置。
+Windows 公开制品不要求目标机安装 Node.js、npm、pnpm、npx、Docker 或联网下载；构建脚本会把 Node 运行时和生产依赖放进 ZIP。目标机需要当前用户已经可以运行 Claude Code，安装器会自动注册用户级 MCP。请先把 ZIP 完整解压到一个普通目录，再运行 `START-HERE.html` 或 `INSTALL.cmd`，不要直接从压缩包预览窗口启动。然后运行 `CONFIGURE.cmd` 从模板创建 `%USERPROFILE%\database-mcp-server\config\settings.json`；升级会保留配置，卸载会注销 `database-mcp` 但默认保留数据库配置。
 
 如果双击 `INSTALL.cmd` 失败，窗口会保留并显示 PowerShell 的原始错误，并自动显示临时安装日志的最后 80 行；日志默认位于 `%TEMP%\database-mcp-server\INSTALL-*.log`，直接运行 `INSTALL.ps1` 时才使用 `%USERPROFILE%\database-mcp-server\logs\install.log`。入口批处理文件只使用 ASCII 文本，避免 Windows 代码页把中文提示误当成命令；安装清单按 UTF-8 读取。请把该文件（或窗口）中的错误原文和 `Get-ExecutionPolicy -List` 输出交给管理员或维护者，不要只提供“错误码”。
 
@@ -189,7 +191,7 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -NodeRuntime C:\path\to\node-v22.x-win-x64.zip
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -File .\scripts\verify-windows-release.ps1 `
-  -ZipPath .\dist\database-mcp-server-0.2.5-windows-x64.zip
+  -ZipPath .\dist\database-mcp-server-0.2.6-windows-x64.zip
 ```
 
 如果能提供运行时来源，还可以把官方归档地址和 SHA-256 写入清单：

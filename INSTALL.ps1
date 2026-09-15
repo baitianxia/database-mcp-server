@@ -83,6 +83,184 @@ function Invoke-NativeChecked {
   return $output
 }
 
+function Invoke-NativeCapture {
+  param(
+    [Parameter(Mandatory = $true)][string]$Executable,
+    [Parameter(Mandatory = $true)][string[]]$Arguments
+  )
+  $output = @()
+  $exitCode = 1
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    try {
+      $output = @(& $Executable @Arguments 2>&1)
+      $exitCode = $LASTEXITCODE
+    } catch {
+      $output = @($_.Exception.Message)
+      $exitCode = 1
+    }
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+  return [pscustomobject]@{ Output = @($output); ExitCode = $exitCode }
+}
+
+function Format-NativeFailure {
+  param(
+    [Parameter(Mandatory = $true)][string]$Label,
+    [Parameter(Mandatory = $true)]$Result
+  )
+  $lines = @($Result.Output | ForEach-Object { if ($null -ne $_) { [string]$_ } })
+  $details = ($lines -join "`n").Trim()
+  if ($details.Length -gt 2000) { $details = $details.Substring($details.Length - 2000) }
+  if ($details) { return "$Label failed with exit code $($Result.ExitCode): $details" }
+  return "$Label failed with exit code $($Result.ExitCode)."
+}
+
+function Resolve-ClaudeCode {
+  foreach ($name in @('claude.exe', 'claude.cmd', 'claude')) {
+    $commands = @(Get-Command -Name $name -ErrorAction SilentlyContinue |
+      Where-Object { $_.CommandType -eq 'Application' })
+    foreach ($command in $commands) {
+      $path = if ($command.Source) { [string]$command.Source } else { [string]$command.Path }
+      if ($path) { return $path }
+    }
+  }
+  $fallback = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
+  if (Test-Path -LiteralPath $fallback -PathType Leaf) {
+    return (Resolve-Path -LiteralPath $fallback).Path
+  }
+  return $null
+}
+
+function Get-ClaudeUserConfigPath {
+  $configDirectory = [string]$env:CLAUDE_CONFIG_DIR
+  if ([string]::IsNullOrWhiteSpace($configDirectory)) {
+    $configDirectory = [string]$env:USERPROFILE
+  } else {
+    if (-not [IO.Path]::IsPathRooted($configDirectory)) {
+      throw 'CLAUDE_CONFIG_DIR 必须是绝对路径。'
+    }
+    $configDirectory = [IO.Path]::GetFullPath($configDirectory)
+  }
+  return (Join-Path $configDirectory '.claude.json')
+}
+
+function Assert-ClaudeUserMcp {
+  param(
+    [Parameter(Mandatory = $true)][string]$UserConfigPath,
+    [Parameter(Mandatory = $true)][string]$NodePath,
+    [Parameter(Mandatory = $true)][string]$EntryPath,
+    [Parameter(Mandatory = $true)][string]$ConfigPath
+  )
+  $payload = Read-Utf8Json $UserConfigPath
+  $serversProperty = $payload.PSObject.Properties['mcpServers']
+  $entryProperty = if ($serversProperty -and $serversProperty.Value) {
+    $serversProperty.Value.PSObject.Properties['database-mcp']
+  } else { $null }
+  if ($null -eq $entryProperty -or $null -eq $entryProperty.Value) {
+    throw 'Claude Code 用户配置中没有 database-mcp 条目。'
+  }
+  $entry = $entryProperty.Value
+  $typeProperty = $entry.PSObject.Properties['type']
+  if ($typeProperty -and [string]$typeProperty.Value -ne 'stdio') {
+    throw 'Claude Code database-mcp 条目不是 stdio 传输。'
+  }
+  if (-not [string]::Equals([string]$entry.command, $NodePath, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Claude Code database-mcp 条目的 Node 路径不正确。'
+  }
+  $actualArgs = @($entry.args | ForEach-Object { [string]$_ })
+  if ($actualArgs.Count -ne 1 -or
+      -not [string]::Equals($actualArgs[0], $EntryPath, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Claude Code database-mcp 条目的入口参数不正确。'
+  }
+  $envProperty = $entry.PSObject.Properties['env']
+  $configProperty = if ($envProperty -and $envProperty.Value) {
+    $envProperty.Value.PSObject.Properties['DATABASE_CONFIG_PATH']
+  } else { $null }
+  if ($null -eq $configProperty -or [string]$configProperty.Value -ne $ConfigPath) {
+    throw 'Claude Code database-mcp 条目的 DATABASE_CONFIG_PATH 不正确。'
+  }
+}
+
+function Register-ClaudeCodeMcp {
+  param(
+    [Parameter(Mandatory = $true)][string]$NodePath,
+    [Parameter(Mandatory = $true)][string]$EntryPath,
+    [Parameter(Mandatory = $true)][string]$ConfigPath,
+    [Parameter(Mandatory = $true)][string]$UserConfigPath
+  )
+  $claude = Resolve-ClaudeCode
+  if (-not $claude) {
+    throw '未找到现有的 Claude Code（claude.exe 或 claude.cmd）。安装器不会安装或下载 Claude Code；请先让当前用户可以运行 claude 后重试。'
+  }
+  $versionResult = Invoke-NativeCapture $claude @('--version')
+  if ($versionResult.ExitCode -ne 0) {
+    throw (Format-NativeFailure 'Claude Code version check' $versionResult)
+  }
+  Write-Host ("Claude Code: {0}" -f ((@($versionResult.Output) -join ' ').Trim()))
+
+  if (Test-Path -LiteralPath $UserConfigPath -PathType Container) {
+    throw "Claude Code 用户配置路径不是普通文件：$UserConfigPath"
+  }
+  $configExisted = Test-Path -LiteralPath $UserConfigPath -PathType Leaf
+  $hadServer = $false
+  if ($configExisted) {
+    $existing = Read-Utf8Json $UserConfigPath
+    $serversProperty = $existing.PSObject.Properties['mcpServers']
+    $hadServer = $false
+    if ($serversProperty -and $serversProperty.Value) {
+      $hadServer = $null -ne $serversProperty.Value.PSObject.Properties['database-mcp']
+    }
+  }
+  $backupPath = Join-Path ([IO.Path]::GetTempPath()) ("database-mcp-server-claude-{0}.bak" -f ([guid]::NewGuid().ToString('N')))
+  if ($configExisted) { [IO.File]::Copy($UserConfigPath, $backupPath, $false) }
+
+  try {
+    $remove = Invoke-NativeCapture $claude @('mcp', 'remove', 'database-mcp', '--scope', 'user')
+    if ($remove.ExitCode -eq 0) {
+      Write-Host '已清理旧的 Claude Code 用户级 database-mcp 条目。'
+    } elseif (-not $hadServer -and $remove.ExitCode -eq 1) {
+      Write-Host '未发现旧的 Claude Code database-mcp 条目，继续首次注册。'
+    } else {
+      throw (Format-NativeFailure 'claude mcp remove' $remove)
+    }
+
+    $addArguments = @(
+      'mcp', 'add', '--transport', 'stdio', '--scope', 'user', 'database-mcp',
+      '--env', "DATABASE_CONFIG_PATH=$ConfigPath", '--', $NodePath, $EntryPath
+    )
+    $add = Invoke-NativeCapture $claude $addArguments
+    if ($add.ExitCode -ne 0) {
+      throw (Format-NativeFailure 'claude mcp add' $add)
+    }
+    $get = Invoke-NativeCapture $claude @('mcp', 'get', 'database-mcp')
+    if ($get.ExitCode -ne 0) {
+      throw (Format-NativeFailure 'claude mcp get' $get)
+    }
+    Assert-ClaudeUserMcp $UserConfigPath $NodePath $EntryPath $ConfigPath
+    Write-Host 'Claude Code 用户级 database-mcp 注册和读取验证已完成。'
+    return $UserConfigPath
+  } catch {
+    $failure = $_.Exception.Message
+    try {
+      if ($configExisted) {
+        [IO.File]::Copy($backupPath, $UserConfigPath, $true)
+      } elseif (Test-Path -LiteralPath $UserConfigPath -PathType Leaf) {
+        Remove-Item -LiteralPath $UserConfigPath -Force
+      }
+    } catch {
+      throw "Claude Code MCP 注册失败：$failure；恢复用户配置也失败：$($_.Exception.Message)"
+    }
+    throw "Claude Code MCP 注册失败：$failure；已恢复原用户配置。"
+  } finally {
+    if (Test-Path -LiteralPath $backupPath -PathType Leaf) {
+      Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
+    }
+  }
+}
+
 function Assert-NoReparsePoint([string]$Root) {
   $items = @(Get-Item -LiteralPath $Root) + @(Get-ChildItem -LiteralPath $Root -Recurse -Force)
   foreach ($item in $items) {
@@ -155,17 +333,17 @@ function Read-Utf8Json([string]$Path) {
   try {
     $text = [IO.File]::ReadAllText($Path, $utf8)
   } catch {
-    throw "无法按 UTF-8 读取发布清单：$Path；$($_.Exception.Message)"
+    throw "无法按 UTF-8 读取 JSON：$Path；$($_.Exception.Message)"
   }
   try {
     return ($text | ConvertFrom-Json)
   } catch {
-    throw "发布清单 JSON 无效：$($_.Exception.Message)；请重新解压完整 ZIP，不要运行被编辑器或网页改写的 release-manifest.json。"
+    throw "JSON 无效：$Path；$($_.Exception.Message)；请重新解压完整 ZIP，不要运行被编辑器或网页改写的 JSON 文件。"
   }
 }
 
 try {
-  Write-Host '[1/5] Reading release manifest...'
+  Write-Host '[1/6] Reading release manifest...'
   $manifestPath = Join-Path $packageRoot 'release-manifest.json'
   if (-not (Test-Path -LiteralPath $manifestPath)) { throw '缺少 release-manifest.json，已停止安装。' }
   $manifest = Read-Utf8Json $manifestPath
@@ -181,10 +359,10 @@ try {
   }
   $manifestStatus = [string]$manifest.status
   if ($manifestStatus -notin @('CANDIDATE_UNVERIFIED', 'VERIFIED')) { throw '发布清单状态无效。' }
-  Write-Host '[2/5] Checking package structure...'
+  Write-Host '[2/6] Checking package structure...'
   Assert-NoReparsePoint $packageRoot
   Assert-NoForbiddenContent $packageRoot
-  Write-Host '[3/5] Verifying package files...'
+  Write-Host '[3/6] Verifying package files...'
   Verify-Hashes $packageRoot
 
   $payload = Join-Path $packageRoot 'payload'
@@ -198,7 +376,7 @@ try {
   $appSource = Join-Path $payload $appRelative
   if (-not (Test-Path -LiteralPath $nodeSource -PathType Leaf)) { throw "缺少 Windows x64 Node 运行时: $nodeRelative" }
   if (-not (Test-Path -LiteralPath $appSource -PathType Leaf)) { throw "缺少 MCP 入口: $appRelative" }
-  Write-Host '[4/5] Checking bundled runtime and MCP entry...'
+  Write-Host '[4/6] Checking bundled runtime and MCP entry...'
   Assert-PeX64 $nodeSource
   if ($manifest.runtime.nodeSha256) {
     $expectedNodeHash = [string]$manifest.runtime.nodeSha256
@@ -225,7 +403,7 @@ try {
   $exampleCreated = $false
 
   try {
-    Write-Host '[5/5] Copying files and running MCP smoke check...'
+    Write-Host '[5/6] Copying files and running MCP smoke check...'
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     Copy-Item -Path (Join-Path $payload '*') -Destination $stage -Recurse -Force
     $nodeTarget = Join-Path $stage $nodeRelative
@@ -264,6 +442,8 @@ try {
       configPath = $configPath
       status = $manifestStatus
     }
+    $claudeConfigPath = Get-ClaudeUserConfigPath
+    $state.claudeConfigPath = $claudeConfigPath
     Write-AtomicJson $currentPath $state
     $registration = [ordered]@{ mcpServers = [ordered]@{ 'database-mcp' = [ordered]@{
       type = 'stdio'; command = $nodeInstalled; args = @($appInstalled); env = @{ DATABASE_CONFIG_PATH = $configPath }
@@ -277,9 +457,12 @@ try {
         Select-Object -Skip 1 |
         Remove-Item -Recurse -Force
     }
+    Write-Host '[6/6] Registering database-mcp in Claude Code user scope...'
+    $null = Register-ClaudeCodeMcp -NodePath $nodeInstalled -EntryPath $appInstalled -ConfigPath $configPath -UserConfigPath $claudeConfigPath
     Write-Host "数据库助手 $version 已安装到 $projectRoot。"
     Write-Host "配置文件：$configPath"
-    Write-Host '请运行 CONFIGURE.cmd（如需填写配置），然后在 Claude Code 中重新加载 database-mcp。'
+    Write-Host "Claude Code 用户级 MCP 已注册：$claudeConfigPath"
+    Write-Host '请重启 Claude Code，在任意项目运行 /mcp 确认 database-mcp；如需填写配置，先运行 CONFIGURE.cmd。'
   } catch {
     if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
     if ($versionMoved -and -not $backup -and (Test-Path -LiteralPath $versionRoot)) {

@@ -38,7 +38,7 @@ MySQL 保留为当前 adapter/驱动能力，不能成为产品级工程名、MC
 - `src/config.js` 已使用用户目录 `config/settings.json`，支持 `DATABASE_CONFIG_PATH`、schemaVersion 1、原子写入、脱敏摘要和权限加固；配置可通过 `environments` 保存多套连接，并用可选 `defaultEnvironment` 指定省略环境参数时的回退。
 - `src/index.js` 已固定 `database-mcp` 身份，并提供环境目录、默认环境设置和带 `environment` 参数的通用 `database_*` 工具；服务不保存当前环境。
 - `scripts/build-windows.ps1` 只接受显式提供的 Windows x64 Node 运行时，使用生产依赖和白名单文件生成 `database-mcp-server-<version>-windows-x64.zip`；打包前会用 PowerShell AST 解析器检查随包 `.ps1`；默认清单状态为 `CANDIDATE_UNVERIFIED`。
-- `INSTALL.cmd` 通过单独的 `powershell.exe -ExecutionPolicy Bypass` 子进程启动，直接回显全部输出，并无论成功或失败都停留到用户按键；脚本能启动时还会把输出写入 `%USERPROFILE%\database-mcp-server\logs\install.log`；日志目录不可写或脚本在解析前失败时仍直接显示错误；`CONFIGURE.cmd`、`OPEN-CONFIG.cmd`、`UNINSTALL.cmd` 只访问本工程用户目录。
+- `INSTALL.cmd` 通过单独的 `powershell.exe -ExecutionPolicy Bypass` 子进程启动，直接回显全部输出，并无论成功或失败都停留到用户按键；脚本能启动时还会把输出写入 `%USERPROFILE%\database-mcp-server\logs\install.log`；日志目录不可写或脚本在解析前失败时仍直接显示错误。安装成功后会复用当前用户已有的 Claude Code CLI，通过 `mcp remove/add/get --scope user` 注册并核对 `database-mcp`，注册失败会恢复原用户配置；`UNINSTALL.cmd` 会注销该用户级条目。`CONFIGURE.cmd`、`OPEN-CONFIG.cmd` 仍只访问本工程用户目录。
 - 本机 `node --check` 和 `node --test` 已通过；由于当前执行环境不是 Windows x64，不能把这些结果当作 Windows 验收证据，也未将候选制品标记为 `VERIFIED`。
 - Git 仓库已初始化并推送到公开远端；根目录的 [`release-baseline.json`](../release-baseline.json) 继续保存逐文件内容摘要，构建脚本会在可用时把 Git 提交写入发布清单，否则使用该摘要 revision。
 
