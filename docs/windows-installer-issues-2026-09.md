@@ -42,7 +42,7 @@
 ## 版本与验证记录
 
 - 修复提交：`ca0c6b9`（清单解析）、`eaa3a7e`（安装进度）、`346d8b3`（日志、阶段和原生错误回显）。
-- 当前候选包：`database-mcp-server-0.2.6-windows-x64.zip`；SHA-256 为 `a83a5e454cfee437efb946fc936782ef1f8f8e6084d836c5c930c1a766a34f58`，状态仍为 `CANDIDATE_UNVERIFIED`。
+- 当前候选包：`database-mcp-server-0.2.6-windows-x64.zip`；SHA-256 为 `d309359c60a97441bfbd5d29c0aaf6c4a46b7e7f6bd7184fbf815143a940c59c`，状态仍为 `CANDIDATE_UNVERIFIED`。
 - 已完成：本机 PowerShell 解析器解析随包脚本、候选 ZIP 单顶层/逐文件 SHA-256/清单检查、Node `--check`、32 个 Node 测试。
 - 未完成：原生 Windows x64 + Windows PowerShell 5.1 的干净安装、配置重载、升级/回滚、卸载、代码页矩阵和完整耗时基准。
 - 本机执行候选包时，流程能输出完整哈希进度并到达 Windows Node 启动边界；macOS 不能执行包内 `node.exe`，该结果不计为 Windows 安装验收。候选包结构、PowerShell 语法、逐文件哈希和注册逻辑静态门禁已通过。
