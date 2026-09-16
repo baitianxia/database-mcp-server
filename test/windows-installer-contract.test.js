@@ -13,6 +13,8 @@ test('Windows installer registers and verifies the Claude Code user-scope MCP', 
   assert.match(installer, /'--scope', 'user'/);
   assert.match(installer, /Assert-ClaudeUserMcp/);
   assert.match(installer, /已恢复原用户配置/);
+  assert.match(installer, /Move-DirectoryWithRetry/);
+  assert.match(installer, /\[IO\.Directory\]::Move/);
 
   const uninstaller = await fs.readFile(path.join(root, 'UNINSTALL.ps1'), 'utf8');
   assert.match(uninstaller, /Remove-ClaudeCodeMcp/);

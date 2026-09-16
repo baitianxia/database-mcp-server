@@ -261,6 +261,84 @@ function Register-ClaudeCodeMcp {
   }
 }
 
+function Test-RetryableDirectoryMoveError {
+  param(
+    [Parameter(Mandatory = $true)]
+    [Management.Automation.ErrorRecord]$ErrorRecord
+  )
+  if ($ErrorRecord.CategoryInfo.Category -eq [Management.Automation.ErrorCategory]::PermissionDenied) {
+    return $true
+  }
+  $errorId = [string]$ErrorRecord.FullyQualifiedErrorId
+  if ($errorId -match '(?i)(UnauthorizedAccess|MoveDirectoryItemIOError|MoveFileInfoItemUnauthorizedAccessError)') {
+    return $true
+  }
+  $exception = $ErrorRecord.Exception
+  while ($null -ne $exception) {
+    if ($exception -is [UnauthorizedAccessException] -or $exception -is [IO.IOException]) {
+      return $true
+    }
+    $exception = $exception.InnerException
+  }
+  return $false
+}
+
+function Move-DirectoryWithRetry {
+  param(
+    [Parameter(Mandatory = $true)][string]$Source,
+    [Parameter(Mandatory = $true)][string]$Destination,
+    [Parameter(Mandatory = $true)][string]$OperationLabel,
+    [ValidateRange(2, 100)][int]$MaximumAttempts = 25
+  )
+  if (-not (Test-Path -LiteralPath $Source -PathType Container)) {
+    throw "$OperationLabel 的源目录不存在：$Source"
+  }
+  if (Test-Path -LiteralPath $Destination) {
+    throw "$OperationLabel 的目标路径已存在：$Destination"
+  }
+  $delayMilliseconds = 250
+  for ($attempt = 1; $attempt -le $MaximumAttempts; $attempt++) {
+    try {
+      # Directory.Move performs a same-volume rename. Unlike Move-Item, a
+      # denied rename does not create a partial destination directory, which
+      # keeps a retry unambiguous on Windows PowerShell 5.1.
+      [IO.Directory]::Move($Source, $Destination)
+      if (Test-Path -LiteralPath $Source) {
+        throw "$OperationLabel 返回成功但源目录仍存在：$Source"
+      }
+      if (-not (Test-Path -LiteralPath $Destination -PathType Container)) {
+        throw "$OperationLabel 返回成功但目标目录不存在：$Destination"
+      }
+      if ($attempt -gt 1) {
+        Write-Host "$OperationLabel 已等待占用释放，继续安装。"
+      }
+      return
+    } catch {
+      $moveError = $_
+      $sourcePresent = Test-Path -LiteralPath $Source -PathType Container
+      $destinationPresent = Test-Path -LiteralPath $Destination -PathType Container
+      if (-not $sourcePresent -and $destinationPresent) {
+        Write-Host "$OperationLabel 已完成，继续安装。"
+        return
+      }
+      if (-not $sourcePresent -or $destinationPresent) {
+        throw "$OperationLabel 状态不明确，未继续重试。sourcePresent=$sourcePresent; destinationPresent=$destinationPresent; error=$($moveError.Exception.Message)"
+      }
+      if (-not (Test-RetryableDirectoryMoveError $moveError)) { throw }
+      if ($attempt -ge $MaximumAttempts) {
+        throw "$OperationLabel 被安全软件或其他进程持续占用；安装器已重试 $MaximumAttempts 次仍无法完成。原始错误：$($moveError.Exception.Message)"
+      }
+      if ($attempt -eq 1) {
+        Write-Host "$OperationLabel 正被安全软件或其他进程占用，安装器将自动重试。"
+      } elseif (($attempt % 5) -eq 0) {
+        Write-Host "$OperationLabel 仍在等待占用释放（已重试 $attempt 次）。"
+      }
+      Start-Sleep -Milliseconds $delayMilliseconds
+      $delayMilliseconds = [Math]::Min($delayMilliseconds * 2, 5000)
+    }
+  }
+}
+
 function Assert-NoReparsePoint([string]$Root) {
   $items = @(Get-Item -LiteralPath $Root) + @(Get-ChildItem -LiteralPath $Root -Recurse -Force)
   foreach ($item in $items) {
@@ -418,9 +496,9 @@ try {
 
     if (Test-Path -LiteralPath $versionRoot) {
       $backup = Join-Path $versionsRoot ".rollback-$version-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))"
-      Move-Item -LiteralPath $versionRoot -Destination $backup
+      Move-DirectoryWithRetry -Source $versionRoot -Destination $backup -OperationLabel '备份当前版本'
     }
-    Move-Item -LiteralPath $stage -Destination $versionRoot
+    Move-DirectoryWithRetry -Source $stage -Destination $versionRoot -OperationLabel '发布暂存版本'
     $versionMoved = $true
     if (-not (Test-Path -LiteralPath $configPath)) {
       $example = Join-Path $packageRoot 'config\settings.example.json'
@@ -470,7 +548,7 @@ try {
     }
     if ($backup -and (Test-Path -LiteralPath $backup)) {
       if (Test-Path -LiteralPath $versionRoot) { Remove-Item -LiteralPath $versionRoot -Recurse -Force }
-      Move-Item -LiteralPath $backup -Destination $versionRoot
+      Move-DirectoryWithRetry -Source $backup -Destination $versionRoot -OperationLabel '回滚旧版本'
     }
     if ($exampleCreated -and -not $exampleExisted -and (Test-Path -LiteralPath $installedExample)) {
       Remove-Item -LiteralPath $installedExample -Force

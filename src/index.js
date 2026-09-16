@@ -15,7 +15,7 @@ import {
 } from './config.js';
 import { createDatabase } from './db.js';
 
-const VERSION = '0.2.5';
+const VERSION = '0.2.7';
 const SERVER_NAME = 'database-mcp';
 const DISPLAY_NAME = '数据库助手（当前支持 MySQL）';
 const configPath = resolveConfigPath();

@@ -191,7 +191,7 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -NodeRuntime C:\path\to\node-v22.x-win-x64.zip
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass `
   -File .\scripts\verify-windows-release.ps1 `
-  -ZipPath .\dist\database-mcp-server-0.2.6-windows-x64.zip
+  -ZipPath .\dist\database-mcp-server-0.2.7-windows-x64.zip
 ```
 
 如果能提供运行时来源，还可以把官方归档地址和 SHA-256 写入清单：
